@@ -101,8 +101,8 @@
 />
 
 <!--User Message layout-->
-<!--changed from ltr (left to right) to rtl (right to left) and width to 1/2-->
-<div class=" flex w-1/2 user-message" dir={$settings.chatDirection ?? 'rtl'} id="message-{message.id}">
+<!--changed from ltr (left to right) to rtl (right to left)-->
+<div class="flex flex-row user-message" dir={$settings.chatDirection = "RTL"} id="message-{message.id}" >
 	{#if !($settings?.chatBubble ?? true)}
 		<div class={`shrink-0 ltr:mr-3 rtl:ml-3`}>
 			<ProfileImage
@@ -142,7 +142,7 @@
 
 		<div class="chat-{message.role} w-full min-w-full markdown-prose">
 			{#if message.files}
-				<div class="mt-2.5 mb-1 w-full flex flex-col justify-end overflow-x-auto gap-1 flex-wrap">
+				<div class="mt-2.5 mb-1 w-full flex flex-row justify-end overflow-x-auto gap-1 flex-wrap">
 					{#each message.files as file}
 						<div class={($settings?.chatBubble ?? true) ? 'self-end' : ''}>
 							{#if file.type === 'image'}

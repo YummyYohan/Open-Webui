@@ -42,71 +42,85 @@
 </script>
 
 <div
-	class="flex flex-col justify-between px-5 mb-3 w-full {($settings?.widescreenMode ?? null)
+	class="grid grid-cols-2 justify-between px-5 mb-3 w-full {($settings?.widescreenMode ?? null)
 		? 'max-w-full'
-		: 'max-w-5xl'} mx-auto rounded-lg group"
+		: 'max-w-6xl'} mx-auto rounded-lg group"
+	
+	
+		
 >
 	{#if history.messages[messageId]}
 		{#if history.messages[messageId].role === 'user'}
-			<UserMessage
-				{user}
-				{history}
-				{messageId}
-				isFirstMessage={idx === 0}
-				siblings={history.messages[messageId].parentId !== null
-					? (history.messages[history.messages[messageId].parentId]?.childrenIds ?? [])
-					: (Object.values(history.messages)
-							.filter((message) => message.parentId === null)
-							.map((message) => message.id) ?? [])}
-				{gotoMessage}
-				{showPreviousMessage}
-				{showNextMessage}
-				{editMessage}
-				{deleteMessage}
-				{readOnly}
-			/>
-		{:else if (history.messages[history.messages[messageId].parentId]?.models?.length ?? 1) === 1}
-			<ResponseMessage
-				{chatId}
-				{history}
-				{messageId}
-				isLastMessage={messageId === history.currentId}
-				siblings={history.messages[history.messages[messageId].parentId]?.childrenIds ?? []}
-				{gotoMessage}
-				{showPreviousMessage}
-				{showNextMessage}
-				{updateChat}
-				{editMessage}
-				{saveMessage}
-				{rateMessage}
-				{actionMessage}
-				{submitMessage}
-				{deleteMessage}
-				{continueResponse}
-				{regenerateResponse}
-				{addMessages}
-				{readOnly}
-			/>
-		{:else}
-			<MultiResponseMessages
-				bind:history
-				{chatId}
-				{messageId}
-				isLastMessage={messageId === history?.currentId}
-				{updateChat}
-				{editMessage}
-				{saveMessage}
-				{rateMessage}
-				{actionMessage}
-				{submitMessage}
-				{deleteMessage}
-				{continueResponse}
-				{regenerateResponse}
-				{mergeResponses}
-				{triggerScroll}
-				{addMessages}
-				{readOnly}
-			/>
+			<!-- Outer container for user + response -->
+
+				<!-- Render User Message -->
+				<UserMessage
+					{user}
+					{history}
+					{messageId}
+					isFirstMessage={idx === 0}
+					siblings={history.messages[messageId].parentId !== null
+						? (history.messages[history.messages[messageId].parentId]?.childrenIds ?? [])
+						: (Object.values(history.messages)
+								.filter((message) => message.parentId === null)
+								.map((message) => message.id) ?? [])}
+					{gotoMessage}
+					{showPreviousMessage}
+					{showNextMessage}
+					{editMessage}
+					{deleteMessage}
+					{readOnly}
+				/>
+
+				<!-- Render corresponding response(s) -->
+				{#if (history.messages[messageId].childrenIds?.length ?? 0) > 0}
+					<!-- Pick the first child (response) for simple case -->
+					{#each history.messages[messageId].childrenIds as responseId}
+						{#if (history.messages[responseId]?.models?.length ?? 1) === 1}
+							<ResponseMessage
+								{chatId}
+								{history}
+								messageId={responseId}
+								isLastMessage={responseId === history.currentId}
+								siblings={history.messages[messageId].childrenIds}
+								{gotoMessage}
+								{showPreviousMessage}
+								{showNextMessage}
+								{updateChat}
+								{editMessage}
+								{saveMessage}
+								{rateMessage}
+								{actionMessage}
+								{submitMessage}
+								{deleteMessage}
+								{continueResponse}
+								{regenerateResponse}
+								{addMessages}
+								{readOnly}
+							/>
+						{:else}
+							<MultiResponseMessages
+								bind:history
+								{chatId}
+								messageId={responseId}
+								isLastMessage={responseId === history?.currentId}
+								{updateChat}
+								{editMessage}
+								{saveMessage}
+								{rateMessage}
+								{actionMessage}
+								{submitMessage}
+								{deleteMessage}
+								{continueResponse}
+								{regenerateResponse}
+								{mergeResponses}
+								{triggerScroll}
+								{addMessages}
+								{readOnly}
+							/>
+						{/if}
+					{/each}
+				{/if}
 		{/if}
 	{/if}
 </div>

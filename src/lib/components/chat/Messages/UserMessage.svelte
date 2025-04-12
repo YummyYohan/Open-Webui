@@ -100,7 +100,9 @@
 	}}
 />
 
-<div class=" flex w-full user-message" dir={$settings.chatDirection} id="message-{message.id}">
+<!--User Message layout-->
+<!--changed from ltr (left to right) to rtl (right to left) and width to 1/2-->
+<div class=" flex w-1/2 user-message" dir={$settings.chatDirection ?? 'rtl'} id="message-{message.id}">
 	{#if !($settings?.chatBubble ?? true)}
 		<div class={`shrink-0 ltr:mr-3 rtl:ml-3`}>
 			<ProfileImage

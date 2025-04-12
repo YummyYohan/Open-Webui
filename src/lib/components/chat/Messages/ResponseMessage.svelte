@@ -580,7 +580,7 @@
 	<div
 		class=" flex w-full message-{message.id}"
 		id="message-{message.id}"
-		dir={$settings.chatDirection}
+		dir={$settings.chatDirection ?? 'rtl'}
 	>
 		<div class={`shrink-0 ltr:mr-3 rtl:ml-3`}>
 			<ProfileImage
@@ -592,11 +592,15 @@
 
 		<div class="flex-auto w-0 pl-1">
 			<Name>
+
+				<!--Shows the name of the model with a wrapper component that shows the tooltip-->
+				
 				<Tooltip content={model?.name ?? message.model} placement="top-start">
 					<span class="line-clamp-1 text-black dark:text-white">
 						{model?.name ?? message.model}
 					</span>
 				</Tooltip>
+				
 
 				{#if message.timestamp}
 					<div
@@ -762,7 +766,8 @@
 								</div>
 							</div>
 						{:else}
-							<div class="w-full flex flex-col relative" id="response-content-container">
+						<!-- Changed the response message conatiner to width = 1/2-->
+							<div class="w-1/2 flex flex-col relative" id="response-content-container">
 								{#if message.content === '' && !message.error}
 									<Skeleton />
 								{:else if message.content && message.error !== true}

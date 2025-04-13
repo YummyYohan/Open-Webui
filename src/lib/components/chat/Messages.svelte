@@ -23,6 +23,9 @@
 	import ChatPlaceholder from './ChatPlaceholder.svelte';
 
 	const i18n = getContext('i18n');
+	
+
+	export let side: 'left' | 'right';
 
 	export let className = 'h-full flex pt-8';
 
@@ -50,6 +53,8 @@
 
 	export let bottomPadding = false;
 	export let autoScroll;
+
+	console.log('🚀 side in Messages.svelte:', side);
 
 	let messagesCount = 20;
 	let messagesLoading = false;
@@ -452,6 +457,7 @@
 							{addMessages}
 							{triggerScroll}
 							{readOnly}
+							side={side}
 						/>
 					{/each}
 				</div>

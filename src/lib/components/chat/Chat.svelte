@@ -87,9 +87,11 @@
 	import Placeholder from './Placeholder.svelte';
 	import NotificationToast from '../NotificationToast.svelte';
 	import Spinner from '../common/Spinner.svelte';
+	import Message from '$lib/components/chat/Messages/Message.svelte';
 
+	
 	export let chatIdProp = '';
-
+	
 	let loading = false;
 
 	const eventTarget = new EventTarget();
@@ -1892,6 +1894,8 @@
 	};
 </script>
 
+
+
 <svelte:head>
 	<title>
 		{$chatTitle
@@ -1921,11 +1925,14 @@
 	}}
 />
 
+
 <div
 	class="h-screen max-h-[100dvh] transition-width duration-200 ease-in-out {$showSidebar
 		? '  md:max-w-[calc(100%-260px)]'
-		: ' '} w-full max-w-full flex flex-col"
+		: ' '} w-full max-w-full flex flex-col
+		"
 	id="chat-container"
+	
 >
 	{#if chatIdProp === '' || (!loading && chatIdProp)}
 		{#if $settings?.backgroundImageUrl ?? null}
@@ -2011,89 +2018,96 @@
 					</div>
 				{/if}
 
-				<div class="flex flex-col flex-auto z-10 w-full @container">
+				
+				
+				<!--First Split screen-->
 					{#if $settings?.landingPageMode === 'chat' || createMessagesList(history, history.currentId).length > 0}
-						<div
-							class=" pb-2.5 flex flex-col justify-between w-full flex-auto overflow-auto h-0 max-w-full z-10 scrollbar-hidden"
-							id="messages-container"
-							bind:this={messagesContainerElement}
-							on:scroll={(e) => {
-								autoScroll =
-									messagesContainerElement.scrollHeight - messagesContainerElement.scrollTop <=
-									messagesContainerElement.clientHeight + 5;
-							}}
+						<div class="flex flex-col flex-auto z-10 w-full @container bg-neutral-800" 
+						id = "split1"
 						>
-							<div class=" h-full w-full flex flex-col">
-								<Messages
-									chatId={$chatId}
-									bind:history
-									bind:autoScroll
-									bind:prompt
-									{selectedModels}
-									{atSelectedModel}
-									{sendPrompt}
-									{showMessage}
-									{submitMessage}
-									{continueResponse}
-									{regenerateResponse}
-									{mergeResponses}
-									{chatActionHandler}
-									{addMessages}
-									bottomPadding={files.length > 0}
-								/>
-							</div>
-						</div>
-
-						<div class=" pb-[1rem]">
-							<MessageInput
-								{history}
-								{selectedModels}
-								bind:files
-								bind:prompt
-								bind:autoScroll
-								bind:selectedToolIds
-								bind:imageGenerationEnabled
-								bind:codeInterpreterEnabled
-								bind:webSearchEnabled
-								bind:atSelectedModel
-								toolServers={$toolServers}
-								transparentBackground={$settings?.backgroundImageUrl ?? false}
-								{stopResponse}
-								{createMessagePair}
-								onChange={(input) => {
-									if (input.prompt) {
-										localStorage.setItem(`chat-input-${$chatId}`, JSON.stringify(input));
-									} else {
-										localStorage.removeItem(`chat-input-${$chatId}`);
-									}
-								}}
-								on:upload={async (e) => {
-									const { type, data } = e.detail;
-
-									if (type === 'web') {
-										await uploadWeb(data);
-									} else if (type === 'youtube') {
-										await uploadYoutubeTranscription(data);
-									} else if (type === 'google-drive') {
-										await uploadGoogleDriveFile(data);
-									}
-								}}
-								on:submit={async (e) => {
-									if (e.detail || files.length > 0) {
-										await tick();
-										submitPrompt(
-											($settings?.richTextInput ?? true)
-												? e.detail.replaceAll('\n\n', '\n')
-												: e.detail
-										);
-									}
-								}}
-							/>
-
 							<div
-								class="absolute bottom-1 text-xs text-gray-500 text-center line-clamp-1 right-0 left-0"
+								class=" pb-2.5 flex flex-col justify-between w-full flex-auto overflow-auto h-0 max-w-full z-10 scrollbar-hidden"
+								id="messages-container"
+								bind:this={messagesContainerElement}
+								on:scroll={(e) => {
+									autoScroll =
+										messagesContainerElement.scrollHeight - messagesContainerElement.scrollTop <=
+										messagesContainerElement.clientHeight + 5;
+								}}
 							>
-								<!-- {$i18n.t('LLMs can make mistakes. Verify important information.')} -->
+								<div class=" flex flex-col">
+									<Messages
+										chatId={$chatId}
+										bind:history
+										bind:autoScroll
+										bind:prompt
+										{selectedModels}
+										{atSelectedModel}
+										{sendPrompt}
+										{showMessage}
+										{submitMessage}
+										{continueResponse}
+										{regenerateResponse}
+										{mergeResponses}
+										{chatActionHandler}
+										{addMessages}
+										bottomPadding={files.length > 0}
+										side="left"
+									/>
+								</div>
+							</div>
+
+							<div class=" pb-[1rem]">
+								<MessageInput
+									{history}
+									{selectedModels}
+									bind:files
+									bind:prompt
+									bind:autoScroll
+									bind:selectedToolIds
+									bind:imageGenerationEnabled
+									bind:codeInterpreterEnabled
+									bind:webSearchEnabled
+									bind:atSelectedModel
+									toolServers={$toolServers}
+									transparentBackground={$settings?.backgroundImageUrl ?? false}
+									{stopResponse}
+									{createMessagePair}
+									onChange={(input) => {
+										if (input.prompt) {
+											localStorage.setItem(`chat-input-${$chatId}`, JSON.stringify(input));
+										} else {
+											localStorage.removeItem(`chat-input-${$chatId}`);
+										}
+									}}
+									on:upload={async (e) => {
+										const { type, data } = e.detail;
+
+										if (type === 'web') {
+											await uploadWeb(data);
+										} else if (type === 'youtube') {
+											await uploadYoutubeTranscription(data);
+										} else if (type === 'google-drive') {
+											await uploadGoogleDriveFile(data);
+										}
+									}}
+									on:submit={async (e) => {
+										if (e.detail || files.length > 0) {
+											await tick();
+											submitPrompt(
+												($settings?.richTextInput ?? true)
+													? e.detail.replaceAll('\n\n', '\n')
+													: e.detail
+											);
+										}
+									}}
+								/>
+
+								<div
+									class="absolute bottom-1 text-xs text-gray-500 text-center line-clamp-1 right-0 left-0"
+								>
+									<!-- {$i18n.t('LLMs can make mistakes. Verify important information.')} -->
+								</div>
 							</div>
 						</div>
 					{:else}
@@ -2134,8 +2148,49 @@
 								}}
 							/>
 						</div>
-					{/if}
-				</div>
+				{/if}
+			
+				
+				<!--second Split screen but removed message input bar-->
+				{#if $settings?.landingPageMode === 'chat' || createMessagesList(history, history.currentId).length > 0}
+					
+					<div class="flex flex-col flex-auto z-10 w-full @container" 
+					id = "split2"
+					>
+						<div
+							class=" pb-2.5 flex flex-col justify-between w-full flex-auto overflow-auto h-0 max-w-full z-10 scrollbar-hidden"
+							id="messages-container"
+							bind:this={messagesContainerElement}
+							on:scroll={(e) => {
+								autoScroll =
+									messagesContainerElement.scrollHeight - messagesContainerElement.scrollTop <=
+									messagesContainerElement.clientHeight + 5;
+							}}
+						>
+							<div class=" flex flex-col">
+								<Messages
+									chatId={$chatId}
+									bind:history
+									bind:autoScroll
+									bind:prompt
+									{selectedModels}
+									{atSelectedModel}
+									{sendPrompt}
+									{showMessage}
+									{submitMessage}
+									{continueResponse}
+									{regenerateResponse}
+									{mergeResponses}
+									{chatActionHandler}
+									{addMessages}
+									bottomPadding={files.length > 0}
+									side="right"
+								/>
+							</div>
+						</div>
+					</div>
+				{/if}
+				
 			</Pane>
 
 			<ChatControls

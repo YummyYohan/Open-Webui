@@ -578,25 +578,33 @@
 
 {#key message.id}
 	<div
-		class=" flex w-full message-{message.id}"
+		class="flex w-full message-{message.id}"
 		id="message-{message.id}"
-		dir={$settings.chatDirection}
+		dir={$settings.chatDirection ='LTR'}
 	>
+		<!-- removing profile image temporarily
 		<div class={`shrink-0 ltr:mr-3 rtl:ml-3`}>
+			
 			<ProfileImage
 				src={model?.info?.meta?.profile_image_url ??
 					($i18n.language === 'dg-DG' ? `/doge.png` : `${WEBUI_BASE_URL}/static/favicon.png`)}
 				className={'size-8'}
 			/>
 		</div>
+		-->
 
 		<div class="flex-auto w-0 pl-1">
 			<Name>
+
+				<!--Shows the name of the model with a wrapper component that shows the tooltip-->
+				
+				<!--
 				<Tooltip content={model?.name ?? message.model} placement="top-start">
 					<span class="line-clamp-1 text-black dark:text-white">
 						{model?.name ?? message.model}
 					</span>
 				</Tooltip>
+			-->
 
 				{#if message.timestamp}
 					<div
@@ -762,7 +770,8 @@
 								</div>
 							</div>
 						{:else}
-							<div class="w-full flex flex-col relative" id="response-content-container">
+						<!-- response message conatiner-->
+							<div class="flex flex-row relative" id="response-content-container">
 								{#if message.content === '' && !message.error}
 									<Skeleton />
 								{:else if message.content && message.error !== true}

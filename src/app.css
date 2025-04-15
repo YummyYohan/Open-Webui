@@ -380,3 +380,7 @@ input[type='number'] {
 .hljs-strong {
 	font-weight: 700;
 }
+
+.bg-inherit {
+	background-color: inherit;
+}

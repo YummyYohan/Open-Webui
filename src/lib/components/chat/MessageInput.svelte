@@ -452,7 +452,7 @@
 			</div>
 		</div>
 
-		<div class="{transparentBackground ? 'bg-transparent' : 'bg-white dark:bg-gray-850'} ">
+		<div class="bg-inherit {transparentBackground ? 'bg-transparent' : 'bg-white dark:bg-gray-850'} ">
 			<div
 				class="{($settings?.widescreenMode ?? null)
 					? 'max-w-full'

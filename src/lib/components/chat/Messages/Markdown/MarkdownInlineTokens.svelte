@@ -17,63 +17,107 @@
 	export let id: string;
 	export let tokens: Token[];
 	export let onSourceClick: Function = () => {};
+
+	// Create a merged HTML string for just text and html tokens
+	//$ reactive statement
+	$: mergedHtml = tokens
+	.map((token) => {
+		if (token.type === 'text' || token.type === 'html') {
+			return token.text;
+		}
+		return '';
+	})
+	.join('');
+	$: sanitizedMergedHtml = DOMPurify.sanitize(mergedHtml, {
+		ADD_TAGS: ['mark', 'span'],
+		ADD_ATTR: ['class']
+	});
 </script>
+<style>
+	/* General style for the highlighted text */
+	mark {
+	  position: relative;
+	  background-color: lightblue;
+	  cursor: pointer;
+	  padding: 0.2em 0.4em;
+	  border-radius: 2px;
+	}
+  
+	/* Tooltip style */
+	mark:hover::after {
+	  content: attr(tooltip);
+	  position: absolute;
+	  bottom: 120%;  /* Positions the tooltip above the mark */
+	  left: 50%;
+	  transform: translateX(-50%);
+	  background-color: rgba(0, 0, 0, 0.7);
+	  color: white;
+	  padding: 5px;
+	  border-radius: 5px;
+	  font-size: 12px;
+	  white-space: nowrap;
+	  opacity: 1;
+	  visibility: visible;
+	  transition: opacity 0.3s ease, visibility 0.3s ease;
+	}
+  
+	/* Initially hide the tooltip */
+	mark::after {
+	  opacity: 0;
+	  visibility: hidden;
+	}
+  </style>
+
+{@html sanitizedMergedHtml}
 
 {#each tokens as token}
-	{#if token.type === 'escape'}
-		{unescapeHtml(token.text)}
-	{:else if token.type === 'html'}
-		{@const html = DOMPurify.sanitize(token.text)}
-		{#if html && html.includes('<video')}
-			{@html html}
-		{:else if token.text.includes(`<iframe src="${WEBUI_BASE_URL}/api/v1/files/`)}
-			{@html `${token.text}`}
-		{:else if token.text.includes(`<source_id`)}
+	{#if token.type !== 'text' && token.type !== 'html'} <!-- already rendered above -->
+		{#if token.type === 'escape'}
+			{unescapeHtml(token.text)}
+
+		{:else if token.type === 'link'}
+			{#if token.tokens}
+				<a href={token.href} target="_blank" rel="nofollow" title={token.title}>
+					<svelte:self id={`${id}-a`} tokens={token.tokens} {onSourceClick} />
+				</a>
+			{:else}
+				<a href={token.href} target="_blank" rel="nofollow" title={token.title}>{token.text}</a>
+			{/if}
+		{:else if token.type === 'image'}
+			<Image src={token.href} alt={token.text} />
+		{:else if token.type === 'strong'}
+			<strong><svelte:self id={`${id}-strong`} tokens={token.tokens} {onSourceClick} /></strong>
+		{:else if token.type === 'em'}
+			<em><svelte:self id={`${id}-em`} tokens={token.tokens} {onSourceClick} /></em>
+		{:else if token.type === 'codespan'}
+			<!-- svelte-ignore a11y-click-events-have-key-events -->
+			<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+			<code
+				class="codespan cursor-pointer"
+				on:click={() => {
+					copyToClipboard(unescapeHtml(token.text));
+					toast.success($i18n.t('Copied to clipboard'));
+				}}>{unescapeHtml(token.text)}</code
+			>
+		{:else if token.type === 'br'}
+			<br />
+		{:else if token.type === 'del'}
+			<del><svelte:self id={`${id}-del`} tokens={token.tokens} {onSourceClick} /></del>
+		{:else if token.type === 'inlineKatex'}
+			{#if token.text}
+				<KatexRenderer content={token.text} displayMode={false} />
+			{/if}
+		{:else if token.type === 'iframe'}
+			<iframe
+				src="{WEBUI_BASE_URL}/api/v1/files/{token.fileId}/content"
+				title={token.fileId}
+				width="100%"
+				frameborder="0"
+				onload="this.style.height=(this.contentWindow.document.body.scrollHeight+20)+'px';"
+			></iframe>
+		{:else if token.type === 'html' && token.text.includes('<source_id')}
 			<Source {id} {token} onClick={onSourceClick} />
-		{:else}
-			{@html html}
 		{/if}
-	{:else if token.type === 'link'}
-		{#if token.tokens}
-			<a href={token.href} target="_blank" rel="nofollow" title={token.title}>
-				<svelte:self id={`${id}-a`} tokens={token.tokens} {onSourceClick} />
-			</a>
-		{:else}
-			<a href={token.href} target="_blank" rel="nofollow" title={token.title}>{token.text}</a>
-		{/if}
-	{:else if token.type === 'image'}
-		<Image src={token.href} alt={token.text} />
-	{:else if token.type === 'strong'}
-		<strong><svelte:self id={`${id}-strong`} tokens={token.tokens} {onSourceClick} /></strong>
-	{:else if token.type === 'em'}
-		<em><svelte:self id={`${id}-em`} tokens={token.tokens} {onSourceClick} /></em>
-	{:else if token.type === 'codespan'}
-		<!-- svelte-ignore a11y-click-events-have-key-events -->
-		<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-		<code
-			class="codespan cursor-pointer"
-			on:click={() => {
-				copyToClipboard(unescapeHtml(token.text));
-				toast.success($i18n.t('Copied to clipboard'));
-			}}>{unescapeHtml(token.text)}</code
-		>
-	{:else if token.type === 'br'}
-		<br />
-	{:else if token.type === 'del'}
-		<del><svelte:self id={`${id}-del`} tokens={token.tokens} {onSourceClick} /></del>
-	{:else if token.type === 'inlineKatex'}
-		{#if token.text}
-			<KatexRenderer content={token.text} displayMode={false} />
-		{/if}
-	{:else if token.type === 'iframe'}
-		<iframe
-			src="{WEBUI_BASE_URL}/api/v1/files/{token.fileId}/content"
-			title={token.fileId}
-			width="100%"
-			frameborder="0"
-			onload="this.style.height=(this.contentWindow.document.body.scrollHeight+20)+'px';"
-		></iframe>
-	{:else if token.type === 'text'}
-		{token.raw}
 	{/if}
 {/each}
+

@@ -267,7 +267,8 @@
 			</div>
 		</Collapsible>
 	{:else if token.type === 'html'}
-		{@const html = DOMPurify.sanitize(token.text)}
+		{@const html = DOMPurify.sanitize(token.text, { ADD_TAGS: ['mark'], ADD_ATTR: ['class'] })}
+		
 		{#if html && html.includes('<video')}
 			{@html html}
 		{:else if token.text.includes(`<iframe src="${WEBUI_BASE_URL}/api/v1/files/`)}

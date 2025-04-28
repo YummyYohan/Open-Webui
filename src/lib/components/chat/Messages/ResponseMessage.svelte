@@ -771,7 +771,9 @@
 							</div>
 						{:else}
 						<!-- response message conatiner-->
-							<div class="flex flex-row relative" id="response-content-container">
+						 <!--removed relative-->
+							<div class="flex flex-row" id="response-content-container">
+								
 								{#if message.content === '' && !message.error}
 									<Skeleton />
 								{:else if message.content && message.error !== true}
@@ -840,6 +842,7 @@
 												submitMessage(message.id, `\`\`\`\n${content}\n\`\`\`\n${input}`);
 											}
 										}}
+										
 									/>
 								{/if}
 
@@ -1439,22 +1442,6 @@
 	.buttons {
 		-ms-overflow-style: none; /* IE and Edge */
 		scrollbar-width: none; /* Firefox */
-	}
-	mark{
-		visibility: visible;
-		width: 120px;
-		background-color: #555;
-		color: #fff;
-		text-align: center;
-		border-radius: 6px;
-		padding: 5px 0;
-		position: absolute;
-		z-index: 1;
-		bottom: 125%;
-		left: 50%;
-		margin-left: -60px;
-		opacity: 1;
-		transition: opacity 0.3s;
 	}
 	
 </style>

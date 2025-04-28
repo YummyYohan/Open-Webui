@@ -73,7 +73,11 @@
 		// Use FileSaver.js's saveAs function to save the generated CSV file.
 		saveAs(blob, `table-${id}-${tokenIdx}.csv`);
 	};
+
+
+
 </script>
+
 
 <!-- {JSON.stringify(tokens)} -->
 {#each tokens as token, tokenIdx (tokenIdx)}
@@ -267,7 +271,7 @@
 			</div>
 		</Collapsible>
 	{:else if token.type === 'html'}
-		{@const html = DOMPurify.sanitize(token.text, { ADD_TAGS: ['mark'], ADD_ATTR: ['class'] })}
+		{@const html = DOMPurify.sanitize(token.text, { ADD_TAGS: ['mark', 'span', 'div', 'button'], ADD_ATTR: ['class', 'id', 'hidden', 'data-tooltip', 'data-explanation'], USE_PROFILES: { html: true }  })}
 		
 		{#if html && html.includes('<video')}
 			{@html html}
@@ -276,7 +280,7 @@
 		{:else if token.text.includes(`<source_id`)}
 			<Source {id} {token} onClick={onSourceClick} />
 		{:else}
-			{token.text}
+			{@html token.text}
 		{/if}
 	{:else if token.type === 'iframe'}
 		<iframe
@@ -321,7 +325,7 @@
 			<KatexRenderer content={token.text} displayMode={token?.displayMode ?? false} />
 		{/if}
 	{:else if token.type === 'space'}
-		<div class="my-2" />
+		<div class="my-2"  />
 	{:else}
 		{console.log('Unknown token', token)}
 	{/if}

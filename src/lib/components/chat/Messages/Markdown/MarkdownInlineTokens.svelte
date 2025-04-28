@@ -13,10 +13,78 @@
 	import Image from '$lib/components/common/Image.svelte';
 	import KatexRenderer from './KatexRenderer.svelte';
 	import Source from './Source.svelte';
+	import { onMount } from 'svelte';
+	import { afterUpdate } from 'svelte';
+
 
 	export let id: string;
 	export let tokens: Token[];
 	export let onSourceClick: Function = () => {};
+
+
+
+
+	let showTooltip = false;
+	let tooltipX = 0;
+	let tooltipY = 0;
+	let tooltipText = '';
+
+	console.log("Tooltip script loaded!");
+
+	function handleMouseEnter(event) {
+		console.log("Showing tooltip:", tooltipText);
+
+		const margin = 16;
+		showTooltip = true;
+
+		const { pageX, pageY } = event;
+		const viewportWidth = window.innerWidth;
+		const tooltipWidth = 256; // width in px matching Tailwind's w-64
+
+		// Clamp X to prevent overflow
+		let x = pageX + 10;
+		if (x + tooltipWidth > viewportWidth - margin) {
+			x = viewportWidth - tooltipWidth - margin;
+		}
+
+		tooltipX = x;
+		tooltipY = pageY + 10;
+		tooltipText = event.currentTarget.dataset.tooltip;
+
+	}
+
+	function handleMouseLeave() {
+		console.log("Hiding tooltip");
+
+		showTooltip = false;
+	}
+
+	function handleClick(event) {
+		console.log("handleClick", event.currentTarget.dataset.tooltip);
+		const explanationType = event.currentTarget.dataset.tooltip;
+		const buttonId = event.currentTarget.id; // <-- grab the id (4-digit random number)
+		// Hide all explanations
+		document.querySelectorAll(".explanation").forEach((el) => {
+			el.style.display = "none"; // <-- instead of hidden = true
+		});
+
+		// Show the selected one
+		const target = document.getElementById(`explanation-${buttonId}`);
+		if (target) {
+			target.style.display = "block"; // <-- instead of hidden = false
+  		}
+	}
+
+
+	onMount(() => {
+		const buttons = document.querySelectorAll('[data-tooltip]');
+		buttons.forEach(button => {
+			button.addEventListener('mouseenter', handleMouseEnter);
+			button.addEventListener('mouseleave', handleMouseLeave);
+			button.addEventListener('click', handleClick);
+		});
+	});
+
 
 	// Create a merged HTML string for just text and html tokens
 	//$ reactive statement
@@ -29,44 +97,31 @@
 	})
 	.join('');
 	$: sanitizedMergedHtml = DOMPurify.sanitize(mergedHtml, {
-		ADD_TAGS: ['mark', 'span'],
-		ADD_ATTR: ['class']
+		ADD_TAGS: ['mark', 'span', 'div', 'button'],
+		ADD_ATTR: ['class', 'id', 'hidden', 'data-tooltip', 'data-explanation'],
 	});
+
+	afterUpdate(() => {
+		const buttons = document.querySelectorAll('[data-tooltip]');
+		buttons.forEach(button => {
+		button.addEventListener('mouseenter', handleMouseEnter);
+		button.addEventListener('mouseleave', handleMouseLeave);
+		button.addEventListener('click', handleClick);
+		});
+  	});
 </script>
-<style>
-	/* General style for the highlighted text */
-	mark {
-	  position: relative;
-	  background-color: lightblue;
-	  cursor: pointer;
-	  padding: 0.2em 0.4em;
-	  border-radius: 2px;
-	}
-  
-	/* Tooltip style */
-	mark:hover::after {
-	  content: attr(tooltip);
-	  position: absolute;
-	  bottom: 120%;  /* Positions the tooltip above the mark */
-	  left: 50%;
-	  transform: translateX(-50%);
-	  background-color: rgba(0, 0, 0, 0.7);
-	  color: white;
-	  padding: 5px;
-	  border-radius: 5px;
-	  font-size: 12px;
-	  white-space: nowrap;
-	  opacity: 1;
-	  visibility: visible;
-	  transition: opacity 0.3s ease, visibility 0.3s ease;
-	}
-  
-	/* Initially hide the tooltip */
-	mark::after {
-	  opacity: 0;
-	  visibility: hidden;
-	}
-  </style>
+
+
+	{#if showTooltip}
+			<div
+				class="fixed z-50 px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-lg max-w-xs break-words"
+				style="top: {tooltipY}px; left: {tooltipX}px;">
+				{tooltipText}
+			</div>
+		{/if}
+
+
+
 
 {@html sanitizedMergedHtml}
 

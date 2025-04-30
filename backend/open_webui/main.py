@@ -429,10 +429,10 @@ async def lifespan(app: FastAPI):
     log.info("Filter added to FILTERS dictionary.")
 
     # Insert into DB if not exists
-    insert_function_if_missing()
+    # insert_function_if_missing()
 
     # Insert model into DB if not exists
-    insert_model_if_missing()
+    # insert_model_if_missing()
 
     if RESET_CONFIG_ON_START:
         reset_config()

@@ -31,7 +31,7 @@ class Filter:
         3. **Inter-textual Unreliability** - Does the narrator fit a known literary trope or archetype (e.g., trickster, antihero, picaro)?
 
         Your response must:
-        - Return the **user original story** in quotes with relevant phrases wrapped inside mark exactly like this and use the same id for the same tooltip names:
+        - Return the **user original story** with relevant phrases wrapped inside mark exactly like this and use the same id for the same tooltip names:
 
             <mark
                 data-tooltip="Intra-Narrational"

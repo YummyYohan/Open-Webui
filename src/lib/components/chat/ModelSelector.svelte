@@ -30,6 +30,18 @@
 			$models.map((m) => m.id).includes(model) ? model : ''
 		);
 	}
+
+		// New props or reactive data
+	export let filters = []; // should be array of { id, name }
+	export let selectedFilters = ['']; // same index logic as selectedModels
+
+	// Ensure consistency of selectedFilters with selectedModels
+	$: if (selectedFilters.length < selectedModels.length) {
+		selectedFilters = [...selectedFilters, ''];
+	} else if (selectedFilters.length > selectedModels.length) {
+		selectedFilters = selectedFilters.slice(0, selectedModels.length);
+	}
+
 </script>
 
 <div class="flex flex-col w-full items-start">
@@ -52,6 +64,23 @@
 						bind:value={selectedModel}
 					/>
 				</div>
+				<div class="mr-1 max-w-full">
+					<Selector
+							id={`filter-${selectedModelIdx}`}
+							placeholder={$i18n.t('Select a filter')}
+							items={filters.map((filter) => ({
+								value: filter.id,
+								label: filter.name,
+								model: null
+							}))}
+							value={selectedFilters[selectedModelIdx]}
+							on:value={(e) => {
+								selectedFilters[selectedModelIdx] = e.detail;
+								selectedFilters = [...selectedFilters]; // trigger reactivity
+							}}
+					/>
+				</div>
+
 			</div>
 
 			{#if selectedModelIdx === 0}

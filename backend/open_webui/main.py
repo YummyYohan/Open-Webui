@@ -86,10 +86,16 @@ from open_webui.routers.retrieval import (
 
 from open_webui.internal.db import Session, engine
 
-from open_webui.models.functions import Functions
+from open_webui.models.functions import FunctionResponse, Functions, FunctionForm, FunctionMeta, FunctionsTable
+from open_webui.models.models import ModelForm, ModelParams, ModelMeta  # Add this line
 from open_webui.models.models import Models
 from open_webui.models.users import UserModel, Users
 from open_webui.models.chats import Chats
+from open_webui.filters.unreliable_narrator_filter import Filter as UnreliableNarratorFilter
+import uuid
+
+
+
 
 from open_webui.config import (
     LICENSE_KEY,
@@ -370,6 +376,7 @@ from open_webui.tasks import stop_task, list_tasks  # Import from tasks.py
 
 from open_webui.utils.redis import get_sentinels_from_env
 
+FILTERS = {}
 
 if SAFE_MODE:
     print("SAFE MODE ENABLED")
@@ -415,6 +422,18 @@ https://github.com/open-webui/open-webui
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     start_logger()
+
+    #inseting filter/function during startup
+    log.info("Registering unreliable narrator filter...")
+    FILTERS["unreliable-narrator"] = UnreliableNarratorFilter()
+    log.info("Filter added to FILTERS dictionary.")
+
+    # Insert into DB if not exists
+    insert_function_if_missing()
+
+    # Insert model into DB if not exists
+    insert_model_if_missing()
+
     if RESET_CONFIG_ON_START:
         reset_config()
 
@@ -442,6 +461,72 @@ app.state.config = AppConfig(
 app.state.WEBUI_NAME = WEBUI_NAME
 app.state.LICENSE_METADATA = None
 
+
+
+# inserting function during startup
+def insert_function_if_missing():
+    table = FunctionsTable()
+    existing = table.get_function_by_id("unreliable-narrator")
+
+    if not existing:
+
+        # Construct an absolute path
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        filter_path = os.path.join(base_dir, "filters", "unreliable_narrator_filter.py")
+
+        with open(filter_path, "r") as f:
+            content = f.read()
+
+        form_data = FunctionForm(
+            id="unreliable-narrator",
+            name="Unreliable Narrator",
+            content=content,  # adjust path
+            meta=FunctionMeta(
+                description="Analyzes narrator unreliability from a literary perspective.",
+                manifest={
+                    "title": "Unreliable Narrator",
+                    "author": "open-webui",
+                    "author_url": "https://github.com/open-webui",
+                    "funding_url": "https://github.com/open-webui",
+                    "version": "0.1",
+                },
+            ),
+        )
+
+        table.insert_new_function(
+            user_id="default",  # or some default/global user ID
+            type="filter",
+            form_data=form_data
+            
+        )
+        log.info("Inserted unreliable-narrator filter into the database.")
+
+
+#attaching filter/function to model llama
+def insert_model_if_missing():
+    model_id = "llama-3.3-70b-unreliable-narrator"
+    existing = Models.get_model_by_id(model_id)
+
+    if not existing:
+        log.info("Attaching unreliable narrator filter to model...")
+        form_data = ModelForm(
+            id=model_id,
+            name="Llama 3.3 70b Unreliable Narrator",
+            base_model_id="meta/llama-3.3-70b-instruct",  # or whatever base model this proxies
+            params=ModelParams(),  # Any model-specific params here
+            meta=ModelMeta(
+                description="Model with narrator unreliability analysis filter",
+                capabilities={"vision": True,
+                              "usage": False,
+                              "citations": True,
+                              },
+                suggestion_prompt=[],
+                tags=[],
+                filterIds=["unreliable-narrator"]
+            ),
+            access_control= None,  # or set to {} for private, etc.
+        )
+        Models.insert_new_model(form_data, user_id="default")  # default id
 
 ########################################
 #
@@ -1468,3 +1553,5 @@ else:
     log.warning(
         f"Frontend build directory not found at '{FRONTEND_BUILD_DIR}'. Serving API only."
     )
+
+log.info("testing log end")

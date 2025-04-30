@@ -60,7 +60,7 @@
 	}
 
 	function handleClick(event) {
-		console.log("handleClick", event.currentTarget.dataset.tooltip);
+		//console.log("handleClick", event.currentTarget.dataset.tooltip);
 		const explanationType = event.currentTarget.dataset.tooltip;
 		const buttonId = event.currentTarget.id; // <-- grab the id (4-digit random number)
 		// Hide all explanations

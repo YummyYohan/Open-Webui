@@ -5,7 +5,7 @@
 	const dispatch = createEventDispatcher();
 	const i18n = getContext('i18n');
 
-	import { settings } from '$lib/stores';
+	import { settings, selectedUserMessageId} from '$lib/stores';
 	import { copyToClipboard } from '$lib/utils';
 
 	import MultiResponseMessages from './MultiResponseMessages.svelte';
@@ -14,6 +14,7 @@
 	import Chat from '../Chat.svelte';
 	import { split } from 'postcss/lib/list';
 	import { rightArrow } from '@tiptap/extension-typography';
+	import { afterUpdate } from 'svelte';
 
 	export let side: 'left' | 'right';
 	export let testing;
@@ -45,8 +46,26 @@
 	export let addMessages;
 	export let triggerScroll;
 	export let readOnly = false;
+	
 
 	console.log('🚀 side in Message.svelte:', side);
+
+	
+
+	//WIP
+	//Suppose to show the latest user message and reponse when first inputed
+	onMount(() => {
+		if (side === 'left') {
+			const message = history?.messages?.[messageId];
+			const isUserMessage = message?.role === 'user';
+			const isLatestMessage = messageId === history?.currentId;
+			if (isUserMessage) {
+				selectedUserMessageId.set(messageId);
+
+			}
+			
+		}
+	});
 
 </script>
 
@@ -54,10 +73,11 @@
 
 
 <div
-	class="flex flex-col justify-between px-5 mb-3 w-full {($settings?.widescreenMode ?? null)
+	class="flex flex-col justify-between px-5 w-full {($settings?.widescreenMode ?? null)
 		? 'max-w-full'
 		: 'max-w-6xl'} mx-auto rounded-lg group
 		"
+	
 >
 	{#if side === 'left'}
 		{#if history.messages[messageId]}
@@ -81,6 +101,12 @@
 						{editMessage}
 						{deleteMessage}
 						{readOnly}
+
+						on:click={() => {
+							console.log('✅ UserMessage clicked with ID:', messageId);
+							selectedUserMessageId.set(messageId);
+							}}
+							
 					/>
 
 					<!-- Render corresponding response(s) -->
@@ -93,6 +119,7 @@
 	{#if side === 'right'}
 		{#if history.messages[messageId]}
 			{#if history.messages[messageId].role === 'user'}
+				{#if $selectedUserMessageId === messageId}
 				<!-- Outer container for user + response -->
 				
 					<!-- Render User Message -->
@@ -148,6 +175,7 @@
 							{/if}
 						{/each}
 					{/if}
+				{/if}	
 			{/if}
 		{/if}
 	{/if}

@@ -2,6 +2,8 @@
 	import { getContext, onMount } from 'svelte';
 	import Checkbox from '$lib/components/common/Checkbox.svelte';
 	import Tooltip from '$lib/components/common/Tooltip.svelte';
+	import { models, tools, functions, knowledge as knowledgeCollections, user } from '$lib/stores';
+
 
 	const i18n = getContext('i18n');
 
@@ -11,6 +13,8 @@
 	let _filters = {};
 
 	onMount(() => {
+		console.log('filters:', filters);
+		console.log('selectedFilterIds:', selectedFilterIds);
 		_filters = filters.reduce((acc, filter) => {
 			acc[filter.id] = {
 				...filter,
@@ -19,7 +23,9 @@
 
 			return acc;
 		}, {});
+		console.log('_filters:', _filters);
 	});
+	console.log('$function', $functions);
 </script>
 
 <div>

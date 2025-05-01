@@ -9,6 +9,8 @@
 	import ChevronDown from '$lib/components/icons/ChevronDown.svelte';
 	import Check from '$lib/components/icons/Check.svelte';
 	import Search from '$lib/components/icons/Search.svelte';
+	import { getFunctions, toggleGlobalById } from '$lib/apis/functions';
+
 
 	import { deleteModel, getOllamaVersion, pullModel } from '$lib/apis/ollama';
 
@@ -19,7 +21,8 @@
 		mobile,
 		temporaryChatEnabled,
 		settings,
-		config
+		config,
+		functions
 	} from '$lib/stores';
 	import { toast } from 'svelte-sonner';
 	import { capitalizeFirstLetter, sanitizeResponseContent, splitStream } from '$lib/utils';
@@ -279,6 +282,7 @@
 	};
 
 	onMount(async () => {
+		await functions.set(await getFunctions(localStorage.token));
 		ollamaVersion = await getOllamaVersion(localStorage.token).catch((error) => false);
 
 		if (items) {
@@ -394,6 +398,7 @@
 									? ''
 									: 'text-gray-300 dark:text-gray-600 hover:text-gray-700 dark:hover:text-white'} transition capitalize"
 								on:click={() => {
+									
 									selectedConnectionType = '';
 									selectedTag = '';
 								}}
@@ -466,11 +471,12 @@
 							: ''}"
 						data-arrow-selected={index === selectedModelIdx}
 						data-value={item.value}
-						on:click={() => {
+						on:click={async(e) => {
 							value = item.value;
 							selectedModelIdx = index;
-
 							show = false;
+
+							dispatch('change', item.value);
 						}}
 					>
 						<div class="flex flex-col">
@@ -503,8 +509,9 @@
 													<div class="line-clamp-1">
 														{item.label}
 													</div>
+													
 
-													{#if item.model.owned_by === 'ollama' && (item.model.ollama?.details?.parameter_size ?? '') !== ''}
+													{#if item.model && item.model.owned_by === 'ollama' && (item.model.ollama?.details?.parameter_size ?? '') !== ''}
 														<div class="flex ml-1 items-center translate-y-[0.5px]">
 															<Tooltip
 																content={`${
@@ -550,7 +557,7 @@
 											</svg>
 										</div>
 									</Tooltip>
-								{:else if item.model.owned_by === 'openai'}
+								{:else if item.model && item.model.owned_by === 'openai'}
 									<Tooltip content={`${'External'}`}>
 										<div class="translate-y-[1px]">
 											<svg

@@ -40,24 +40,6 @@
 			);
 		}
 	})();
-	
-	//Function to handle click events on <mark> elements
-	
-	function handleMarkClick(e) {
-		const phrase = e.target.textContent;
-		const type = e.target.title;
-		alert(`You clicked on: "${phrase}"\nCategory: ${type}`);
-		
-	}
-
-
-	onMount(() => {
-		const marks = document.querySelectorAll('mark[style]');
-		marks.forEach((el) => {
-			el.addEventListener('click', handleMarkClick);
-		});
-	});
-
 
 </script>
 

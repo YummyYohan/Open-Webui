@@ -91,7 +91,12 @@ from open_webui.models.models import ModelForm, ModelParams, ModelMeta  # Add th
 from open_webui.models.models import Models
 from open_webui.models.users import UserModel, Users
 from open_webui.models.chats import Chats
+
+#filter imports
 from open_webui.filters.unreliable_narrator_filter import Filter as UnreliableNarratorFilter
+from open_webui.filters.show_dont_tell import Filter as ShowDontTellFilter
+
+
 import uuid
 
 
@@ -425,11 +430,13 @@ async def lifespan(app: FastAPI):
 
     #inseting filter/function during startup
     log.info("Registering unreliable narrator filter...")
-    FILTERS["unreliable-narrator"] = UnreliableNarratorFilter()
+    FILTERS["unreliable_narrator"] = UnreliableNarratorFilter()
+    FILTERS["show_dont_tell"] = ShowDontTellFilter()
     log.info("Filter added to FILTERS dictionary.")
 
     # Insert into DB if not exists
-    # insert_function_if_missing()
+    insert_unreliable_narrator_if_missing()
+    insert_show_dont_tell_if_missing()
 
     # Insert model into DB if not exists
     # insert_model_if_missing()
@@ -463,10 +470,10 @@ app.state.LICENSE_METADATA = None
 
 
 
-# inserting function during startup
-def insert_function_if_missing():
+# inserting unreliable narrator function during startup
+def insert_unreliable_narrator_if_missing():
     table = FunctionsTable()
-    existing = table.get_function_by_id("unreliable-narrator")
+    existing = table.get_function_by_id("unreliable_narrator")
 
     if not existing:
 
@@ -474,11 +481,11 @@ def insert_function_if_missing():
         base_dir = os.path.dirname(os.path.abspath(__file__))
         filter_path = os.path.join(base_dir, "filters", "unreliable_narrator_filter.py")
 
-        with open(filter_path, "r") as f:
+        with open(filter_path, "r" ,encoding="utf-8") as f:
             content = f.read()
 
         form_data = FunctionForm(
-            id="unreliable-narrator",
+            id="unreliable_narrator",
             name="Unreliable Narrator",
             content=content,  # adjust path
             meta=FunctionMeta(
@@ -499,8 +506,46 @@ def insert_function_if_missing():
             form_data=form_data
             
         )
-        log.info("Inserted unreliable-narrator filter into the database.")
+        log.info("Inserted unreliable_narrator filter into the database.")
 
+
+# inserting show, don't tell function during startup
+def insert_show_dont_tell_if_missing():
+    table = FunctionsTable()
+    existing = table.get_function_by_id("show_dont_tell")
+
+    if not existing:
+
+        # Construct an absolute path
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        filter_path = os.path.join(base_dir, "filters", "show_dont_tell.py")
+
+        with open(filter_path, "r" ,encoding="utf-8") as f:
+            content = f.read()
+
+        form_data = FunctionForm(
+            id="show_dont_tell",
+            name="Show, Don't Tell",
+            content=content,  # adjust path
+            meta=FunctionMeta(
+                description="Differentiate showing and telling from a literary perspective.",
+                manifest={
+                    "title": "Show, Don't Tell",
+                    "author": "open-webui",
+                    "author_url": "https://github.com/open-webui",
+                    "funding_url": "https://github.com/open-webui",
+                    "version": "0.1",
+                },
+            ),
+        )
+
+        table.insert_new_function(
+            user_id="default",  # or some default/global user ID
+            type="filter",
+            form_data=form_data
+            
+        )
+        log.info("Inserted show_dont_tell filter into the database.")
 
 #attaching filter/function to model llama
 def insert_model_if_missing():
@@ -522,7 +567,7 @@ def insert_model_if_missing():
                               },
                 suggestion_prompt=[],
                 tags=[],
-                filterIds=["unreliable-narrator"]
+                filterIds=["unreliable_narrator"]
             ),
             access_control= None,  # or set to {} for private, etc.
         )

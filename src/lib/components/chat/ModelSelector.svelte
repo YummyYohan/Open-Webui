@@ -1,11 +1,17 @@
 <script lang="ts">
-	import { models, showSettings, settings, user, mobile, config } from '$lib/stores';
+	import { models, showSettings, settings, user, mobile, config, functions } from '$lib/stores';
 	import { onMount, tick, getContext } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import Selector from './ModelSelector/Selector.svelte';
+	import { getFunctions, toggleGlobalById } from '$lib/apis/functions';
 	import Tooltip from '../common/Tooltip.svelte';
+	import FiltersSelector from '$lib/components/workspace/Models/FiltersSelector.svelte';
+	import Checkbox from '$lib/components/common/Checkbox.svelte';
+
 
 	import { updateUserSettings } from '$lib/apis/users';
+
+	
 	const i18n = getContext('i18n');
 
 	export let selectedModels = [''];
@@ -25,27 +31,41 @@
 		toast.success($i18n.t('Default model updated'));
 	};
 
-	$: if (selectedModels.length > 0 && $models.length > 0) {
-		selectedModels = selectedModels.map((model) =>
-			$models.map((m) => m.id).includes(model) ? model : ''
-		);
-	}
+	export let filters = [];
+	let filterIds = [];
+	export let selectedFilterIds = [];
 
-		// New props or reactive data
-	export let filters = []; // should be array of { id, name }
-	export let selectedFilters = ['']; // same index logic as selectedModels
+	let _filters = {};
 
-	// Ensure consistency of selectedFilters with selectedModels
-	$: if (selectedFilters.length < selectedModels.length) {
-		selectedFilters = [...selectedFilters, ''];
-	} else if (selectedFilters.length > selectedModels.length) {
-		selectedFilters = selectedFilters.slice(0, selectedModels.length);
-	}
+	onMount(async() => {
 
+		await functions.set(await getFunctions(localStorage.token));
+		
+		//console.log('filters:', filters);
+		//console.log('selectedFilterIds:', selectedFilterIds);
+		_filters = filters.reduce((acc, filter) => {
+			acc[filter.id] = {
+				...filter,
+				selected: selectedFilterIds.includes(filter.id)
+			};
+			return acc;
+		}, {});
+		//console.log('_filters:', _filters);
+	});
+	//console.log('After mount selectedFilterIds:', selectedFilterIds);
+
+	//console.log('$function', $functions);
+
+	$: console.log('selectedFilterIds changed:', selectedFilterIds);
+
+
+	
 </script>
+
 
 <div class="flex flex-col w-full items-start">
 	{#each selectedModels as selectedModel, selectedModelIdx}
+	
 		<div class="flex w-full max-w-fit">
 			<div class="overflow-hidden w-full">
 				<div class="mr-1 max-w-full">
@@ -62,80 +82,74 @@
 								!($user?.permissions?.chat?.temporary_enforced ?? false)
 							: true}
 						bind:value={selectedModel}
+						on:click={async (e) => {
+							console.log('Change event triggered with detail:', e.detail);
+						}}
 					/>
 				</div>
 				<div class="mr-1 max-w-full">
 					<Selector
-							id={`filter-${selectedModelIdx}`}
-							placeholder={$i18n.t('Select a filter')}
-							items={filters.map((filter) => ({
+						placeholder="Select a filter"
+						items={
+						$functions
+							? $functions
+								.filter((func) => func.type === 'filter')
+								.map((filter) => ({
 								value: filter.id,
 								label: filter.name,
-								model: null
-							}))}
-							value={selectedFilters[selectedModelIdx]}
-							on:value={(e) => {
-								selectedFilters[selectedModelIdx] = e.detail;
-								selectedFilters = [...selectedFilters]; // trigger reactivity
-							}}
+								filter: filter
+								}))
+							: []
+						}
+						bind:value={selectedFilterIds}
+						on:change={async (e) => {
+							const selected = e.detail;
+							const filter = $functions.find((f) => f.id === selected);
+							console.log('on change Selected filter:', filter);
+
+							if (filter && !filter.is_global) {
+								console.log('if');
+
+
+								try {
+									// Set is_global = true for the selected filter
+									const updatedSelected = await toggleGlobalById(localStorage.token, filter.id);
+									console.log('Updated selected filter:', updatedSelected);
+
+									// set is_global = false for other filters
+									const otherFilters = $functions.filter(f => f.id !== selected && f.is_global);
+
+									const updatedOthers = await Promise.all(
+										otherFilters.map(f => toggleGlobalById(localStorage.token, f.id).catch(err => {
+											console.error('Failed to unset global for ${f.id}:', err);
+											return null;
+											})
+										)
+									);
+
+									// update the functions store
+									const updatedFunctionMap = new Map();
+
+									$functions.forEach(f => updatedFunctionMap.set(f.id, f));
+
+									// apply updates
+									if (updatedSelected) updatedFunctionMap.set(updatedSelected.id, updatedSelected);
+									updatedOthers.forEach(f => {
+										if (f) updatedFunctionMap.set(f.id, f);
+									});
+
+									functions.set([...updatedFunctionMap.values()]);
+								} catch (err) {
+									console.error('Failed to toggle global filter:', err);
+								}
+							}
+							
+						}}
 					/>
 				</div>
-
 			</div>
 
-			{#if selectedModelIdx === 0}
-				<div
-					class="  self-center mx-1 disabled:text-gray-600 disabled:hover:text-gray-600 -translate-y-[0.5px]"
-				>
-					<Tooltip content={$i18n.t('Add Model')}>
-						<button
-							class=" "
-							{disabled}
-							on:click={() => {
-								selectedModels = [...selectedModels, ''];
-							}}
-							aria-label="Add Model"
-						>
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke-width="2"
-								stroke="currentColor"
-								class="size-3.5"
-							>
-								<path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6" />
-							</svg>
-						</button>
-					</Tooltip>
-				</div>
-			{:else}
-				<div
-					class="  self-center mx-1 disabled:text-gray-600 disabled:hover:text-gray-600 -translate-y-[0.5px]"
-				>
-					<Tooltip content={$i18n.t('Remove Model')}>
-						<button
-							{disabled}
-							on:click={() => {
-								selectedModels.splice(selectedModelIdx, 1);
-								selectedModels = selectedModels;
-							}}
-							aria-label="Remove Model"
-						>
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke-width="2"
-								stroke="currentColor"
-								class="size-3"
-							>
-								<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15" />
-							</svg>
-						</button>
-					</Tooltip>
-				</div>
-			{/if}
+			<!-- Removing add model button next to dropdown menu -->
 		</div>
 	{/each}
 </div>
@@ -145,3 +159,5 @@
 		<button on:click={saveDefaultModel}> {$i18n.t('Set as default')}</button>
 	</div>
 {/if}
+
+

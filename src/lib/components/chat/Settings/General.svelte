@@ -164,8 +164,10 @@
 	const applyTheme = (_theme: string) => {
 		let themeToApply = _theme === 'oled-dark' ? 'dark' : _theme;
 
+
+		//changed system default to dark
 		if (_theme === 'system') {
-			themeToApply = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+			themeToApply = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'dark';
 		}
 
 		if (themeToApply === 'dark' && !_theme.includes('oled')) {

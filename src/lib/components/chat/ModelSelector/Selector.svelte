@@ -63,6 +63,13 @@
 	let selectedModel = '';
 	$: selectedModel = items.find((item) => item.value === value) ?? '';
 
+	//filter related variables
+	export let filters = [];
+	let filterIds = [];
+	export let selectedFilterIds = [];
+	let _filters = {};
+	//
+
 	let searchValue = '';
 
 	let selectedTag = '';
@@ -282,7 +289,6 @@
 	};
 
 	onMount(async () => {
-		await functions.set(await getFunctions(localStorage.token));
 		ollamaVersion = await getOllamaVersion(localStorage.token).catch((error) => false);
 
 		if (items) {
@@ -291,6 +297,16 @@
 			// Remove duplicates and sort
 			tags = Array.from(new Set(tags)).sort((a, b) => a.localeCompare(b));
 		}
+
+		// setting filter ids if filters are provided
+		await functions.set(await getFunctions(localStorage.token));
+		_filters = filters.reduce((acc, filter) => {
+			acc[filter.id] = {
+				...filter,
+				selected: selectedFilterIds.includes(filter.id)
+			};
+			return acc;
+		}, {});
 	});
 
 	const cancelModelPullHandler = async (model: string) => {

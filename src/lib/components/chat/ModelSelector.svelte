@@ -159,5 +159,3 @@
 		<button on:click={saveDefaultModel}> {$i18n.t('Set as default')}</button>
 	</div>
 {/if}
-
-

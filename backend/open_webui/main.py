@@ -423,7 +423,6 @@ https://github.com/open-webui/open-webui
 """
 )
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     start_logger()

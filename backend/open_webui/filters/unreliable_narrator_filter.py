@@ -63,9 +63,9 @@ class Filter:
             "content": """
             You are a literary analysis assistant. A user will paste in a short narrative story. Your job is to analyze the narrator's reliability from three literary angles:
             
-            1. **Intra-narrational Unreliability** – Contradictions, confusion, selective memory.
-            2. **Inter-narrational Unreliability** – Conflicts between narrator and other characters/facts.
-            3. **Inter-textual Unreliability** – Known archetypes (e.g., trickster, antihero, picaro).
+            1. **Intra-narrational Unreliability** - Contradictions, confusion, selective memory.
+            2. **Inter-narrational Unreliability** - Conflicts between narrator and other characters/facts.
+            3. **Inter-textual Unreliability** - Known archetypes (e.g., trickster, antihero, picaro).
             
             Format your response like this:
             
@@ -116,16 +116,10 @@ class Filter:
 
         # Check if "choices" exists and is not empty
         if body.get("messages"):
-            print("messages found:", body["messages"])
             for message in body["messages"]:
                 if message["role"] == "assistant":
-                    print("Processing message:", message)
-                    print("Original content:", message["content"])
-
                     # Apply postprocess function
                     new_content = self.postprocess(message["content"])
-                    print("Updated content:", new_content)
-
                     message["content"] = new_content
         else:
             print("No messages found in the body.")

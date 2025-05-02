@@ -3,7 +3,7 @@ title: Unreliable Narrator Test
 author: open-webui
 author_url: https://github.com/open-webui
 funding_url: https://github.com/open-webui
-version: 0.2
+version: 0.1
 """
 
 from pydantic import BaseModel, Field
@@ -21,12 +21,12 @@ def replace_tag(match):
         "TEXTUAL": ("Inter-Textual", "rgb(244, 67, 54)", "white", "textual"),
     }
     tooltip, bg_color, text_color, id_ = tag_styles[tag]
-    return f"""<mark data-tooltip="{tooltip}" style="background-color: {bg_color}; cursor: pointer; color: {text_color};" id="{id_}">{content}</mark>"""
+    return f'<mark data-tooltip="{tooltip}" style="background-color: {bg_color}; cursor: pointer; color: {text_color};" id="{id_}">{content}</mark>'
 
 
 def replace_explanation(match):
     tag = match.group(1)
-    content = match.group(2)
+    content = match.group(2).strip()
     headings = {
         "INTRA": "Intra-narrational",
         "INTER": "Inter-narrational",
@@ -35,7 +35,10 @@ def replace_explanation(match):
     class_map = {"INTRA": "intra", "INTER": "inter", "TEXTUAL": "textual"}
     id_ = class_map[tag]
     heading = headings[tag]
-    return f"""<span class="explanation {id_}" id="explanation-{id_}" style="display: none;"><h3>{heading}</h3>{content}</span>"""
+    return (
+        f'<span class="explanation {id_}" id="explanation-{id_}" style="display: none;">'
+        f"<h3>{heading}</h3>{content}</span>"
+    )
 
 
 # Filter
@@ -50,15 +53,19 @@ class Filter:
         self.valves = self.Valves()
 
     def inlet(self, body: dict, __user__: Optional[dict] = None) -> dict:
+
+        if body.get("stream", True):
+            body["stream"] = False
+
         # System prompt setup with literary analysis instructions
         system_prompt = {
             "role": "system",
             "content": """
             You are a literary analysis assistant. A user will paste in a short narrative story. Your job is to analyze the narrator's reliability from three literary angles:
             
-            1. **Intra-narrational Unreliability** - Contradictions, confusion, selective memory.
-            2. **Inter-narrational Unreliability** - Conflicts between narrator and other characters/facts.
-            3. **Inter-textual Unreliability** - Known archetypes (e.g., trickster, antihero, picaro).
+            1. **Intra-narrational Unreliability** – Contradictions, confusion, selective memory.
+            2. **Inter-narrational Unreliability** – Conflicts between narrator and other characters/facts.
+            3. **Inter-textual Unreliability** – Known archetypes (e.g., trickster, antihero, picaro).
             
             Format your response like this:
             
@@ -75,6 +82,7 @@ class Filter:
             **Important:**
             - Use raw brackets exactly as shown.
             - Only wrap each phrase once.
+            - Do not use bullet points
             - Do not summarize or rewrite the story.
             """,
         }
@@ -95,7 +103,7 @@ class Filter:
 
         # Convert explanation blocks (EXPLAIN-INTRA, EXPLAIN-INTER, EXPLAIN-TEXTUAL)
         output = re.sub(
-            r"\[EXPLAIN-(INTRA|INTER|TEXTUAL)\](.*?)\[/EXPLAIN-\1\]",
+            r"\s*\[EXPLAIN-(INTRA|INTER|TEXTUAL)\](.*?)\[/EXPLAIN-\1\]\s*",
             replace_explanation,
             output,
             flags=re.DOTALL,
@@ -104,15 +112,23 @@ class Filter:
         return output
 
     def outlet(self, body: dict, __user__: Optional[dict] = None) -> dict:
+        print("Running outlet...")
 
         # Check if "choices" exists and is not empty
         if body.get("messages"):
+            print("messages found:", body["messages"])
             for message in body["messages"]:
                 if message["role"] == "assistant":
+                    print("Processing message:", message)
+                    print("Original content:", message["content"])
+
                     # Apply postprocess function
                     new_content = self.postprocess(message["content"])
+                    print("Updated content:", new_content)
+
                     message["content"] = new_content
         else:
             print("No messages found in the body.")
 
+        print("End of outlet...")
         return body

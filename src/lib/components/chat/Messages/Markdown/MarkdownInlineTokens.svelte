@@ -15,6 +15,7 @@
 	import Source from './Source.svelte';
 	import { onMount } from 'svelte';
 	import { afterUpdate } from 'svelte';
+	import html2canvas from 'html2canvas-pro';
 
 
 	export let id: string;
@@ -97,7 +98,7 @@
 	})
 	.join('');
 	$: sanitizedMergedHtml = DOMPurify.sanitize(mergedHtml, {
-		ADD_TAGS: ['mark', 'span', 'div', 'button'],
+		ADD_TAGS: ['mark', 'span', 'div', 'button', 'p'],
 		ADD_ATTR: ['class', 'id', 'hidden', 'data-tooltip', 'data-explanation'],
 	});
 
@@ -122,14 +123,12 @@
 
 
 
-
 {@html sanitizedMergedHtml}
 
 {#each tokens as token}
 	{#if token.type !== 'text' && token.type !== 'html'} <!-- already rendered above -->
 		{#if token.type === 'escape'}
 			{unescapeHtml(token.text)}
-
 		{:else if token.type === 'link'}
 			{#if token.tokens}
 				<a href={token.href} target="_blank" rel="nofollow" title={token.title}>
@@ -140,9 +139,10 @@
 			{/if}
 		{:else if token.type === 'image'}
 			<Image src={token.href} alt={token.text} />
-		{:else if token.type === 'strong'}
+		{:else if token.type === 'strong'}	
 			<strong><svelte:self id={`${id}-strong`} tokens={token.tokens} {onSourceClick} /></strong>
 		{:else if token.type === 'em'}
+				
 			<em><svelte:self id={`${id}-em`} tokens={token.tokens} {onSourceClick} /></em>
 		{:else if token.type === 'codespan'}
 			<!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -159,6 +159,7 @@
 		{:else if token.type === 'del'}
 			<del><svelte:self id={`${id}-del`} tokens={token.tokens} {onSourceClick} /></del>
 		{:else if token.type === 'inlineKatex'}
+				inlineKate
 			{#if token.text}
 				<KatexRenderer content={token.text} displayMode={false} />
 			{/if}

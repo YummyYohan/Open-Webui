@@ -16,9 +16,9 @@ def replace_tag(match):
     tag = match.group(1)
     content = match.group(2)
     tag_styles = {
-        "INTRA": ("Intra-Narrational", "rgb(255, 193, 7)", "black", "intra"),
-        "INTER": ("Inter-Narrational", "rgb(3, 169, 244)", "black", "inter"),
-        "TEXTUAL": ("Inter-Textual", "rgb(244, 67, 54)", "white", "textual"),
+        "INTRA": ("Intra-Narrational", "rgb(255, 223, 140)", "black", "intra"),
+        "INTER": ("Inter-Narrational", "rgb(179, 229, 252)", "black", "inter"),
+        "TEXTUAL": ("Inter-Textual", "rgb(255, 179, 186)", "black", "textual"),
     }
     tooltip, bg_color, text_color, id_ = tag_styles[tag]
     return f'<mark data-tooltip="{tooltip}" style="background-color: {bg_color}; cursor: pointer; color: {text_color};" id="{id_}">{content}</mark>'

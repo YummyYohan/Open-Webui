@@ -32,7 +32,24 @@ sh scripts/check_prereqs.sh
     ```bash
     sh scripts/setup.sh
     ```
-    *Note: The backend Python dependencies are typically managed and installed when you first run the backend development server (see next section).*
+
+3.  **Set up Backend Python Environment:**
+    The backend requires a specific Python environment. Create and activate it using Conda:
+    ```bash
+    # Create the environment (only needs to be done once)
+    conda create -n open-webui python=3.11 -y
+
+    # Activate the environment (needs to be done in the terminal session where you run the backend)
+    conda activate open-webui
+    ```
+
+4.  **Install Backend Dependencies:**
+    While the conda environment is active, install the required Python packages:
+    ```bash
+    # Make sure you are in the project root directory
+    # Ensure 'conda activate open-webui' was run in this terminal
+    pip install -r backend/requirements.txt
+    ```
 
 ## 3. Running Locally
 
@@ -50,7 +67,11 @@ You'll need **three separate terminal windows/tabs**: one for Ollama, one for th
         ```bash
         cd backend
         ```
-    *   Run the backend development script. This will often create/activate a Conda environment and install Python dependencies on the first run.
+    *   **Activate the Conda Environment**: Make sure you are in the correct environment before running the backend:
+        ```bash
+        conda activate open-webui
+        ```
+    *   Run the backend development script:
         ```bash
         sh dev.sh
         ```

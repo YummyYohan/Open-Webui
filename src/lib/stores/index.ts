@@ -81,6 +81,9 @@ export const currentChatPage = writable(1);
 export const isLastActiveTab = writable(true);
 export const playingNotificationSound = writable(false);
 
+//user message id
+export const selectedUserMessageId = writable(null);
+
 export type Model = OpenAIModel | OllamaModel;
 
 type BaseModel = {

@@ -3,7 +3,9 @@
 	import { toast } from 'svelte-sonner';
 	import { tick, getContext, onMount } from 'svelte';
 
-	import { models, settings } from '$lib/stores';
+	import { models, selectedUserMessageId, settings } from '$lib/stores';
+	import { get } from 'svelte/store';
+	
 	import { user as _user } from '$lib/stores';
 	import { copyToClipboard as _copyToClipboard, formatDate } from '$lib/utils';
 
@@ -16,6 +18,8 @@
 	import DeleteConfirmDialog from '$lib/components/common/ConfirmDialog.svelte';
 
 	import localizedFormat from 'dayjs/plugin/localizedFormat';
+	import { createEventDispatcher } from 'svelte';
+	const dispatch = createEventDispatcher();
 
 	const i18n = getContext('i18n');
 	dayjs.extend(localizedFormat);
@@ -90,6 +94,8 @@
 	onMount(() => {
 		// console.log('UserMessage mounted');
 	});
+
+	$: isSelected = $selectedUserMessageId === message.id;
 </script>
 
 <DeleteConfirmDialog
@@ -102,7 +108,12 @@
 
 <!--User Message layout-->
 <!--changed from ltr (left to right) to rtl (right to left)-->
-<div class="flex flex-row user-message" dir={$settings.chatDirection = "RTL"} id="message-{message.id}" >
+<div class="flex flex-row mb-5 cursor-pointer user-message transition-all duration-200"
+	dir={$settings.chatDirection = 'RTL'} 
+	id="message-{message.id}" 
+	on:click={() => {
+		dispatch('click');
+		selectedUserMessageId.set(message.id);}}>
 	{#if !($settings?.chatBubble ?? true)}
 		<div class={`shrink-0 ltr:mr-3 rtl:ml-3`}>
 			<ProfileImage
@@ -164,7 +175,7 @@
 
 			{#if message.content !== ''}
 				{#if edit === true}
-					<div class=" w-full bg-gray-50 dark:bg-gray-800 rounded-3xl px-5 py-3 mb-2">
+					<div class=" w-full bg-gray-50 dark:bg-gray-800 rounded-3xl px-5 py-3 mb-2" dir = {$settings.chatDirection = 'LTR'}>
 						<div class="max-h-96 overflow-auto">
 							<textarea
 								id="message-edit-{message.id}"
@@ -234,7 +245,10 @@
 									? `max-w-[90%] px-5 py-2  bg-gray-50 dark:bg-gray-900 ${
 											message.files ? 'rounded-tr-lg' : ''
 										}`
-									: ' w-full'}"
+									: ' w-full'}
+									"
+									class:shadow-3xl={isSelected}
+									class:ring={isSelected}
 							>
 								{#if message.content}
 									<Markdown id={message.id} content={message.content} />
@@ -522,3 +536,4 @@
 		</div>
 	</div>
 </div>
+

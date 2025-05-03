@@ -771,7 +771,9 @@
 							</div>
 						{:else}
 						<!-- response message conatiner-->
-							<div class="flex flex-row relative" id="response-content-container">
+						 <!--removed relative-->
+							<div class="flex flex-row" id="response-content-container">
+								
 								{#if message.content === '' && !message.error}
 									<Skeleton />
 								{:else if message.content && message.error !== true}
@@ -840,6 +842,7 @@
 												submitMessage(message.id, `\`\`\`\n${content}\n\`\`\`\n${input}`);
 											}
 										}}
+										
 									/>
 								{/if}
 
@@ -1440,4 +1443,5 @@
 		-ms-overflow-style: none; /* IE and Edge */
 		scrollbar-width: none; /* Firefox */
 	}
+	
 </style>

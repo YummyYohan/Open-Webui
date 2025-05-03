@@ -89,6 +89,7 @@ class FunctionsTable:
                 **form_data.model_dump(),
                 "user_id": user_id,
                 "type": type,
+                "is_active": True,
                 "updated_at": int(time.time()),
                 "created_at": int(time.time()),
             }

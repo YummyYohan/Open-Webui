@@ -9,6 +9,9 @@
 	import MarkdownTokens from './Markdown/MarkdownTokens.svelte';
 	import { createEventDispatcher } from 'svelte';
 
+	import { onMount } from 'svelte';
+
+
 	const dispatch = createEventDispatcher();
 
 	export let id = '';
@@ -37,6 +40,7 @@
 			);
 		}
 	})();
+
 </script>
 
 {#key id}
@@ -54,3 +58,6 @@
 		}}
 	/>
 {/key}
+
+
+

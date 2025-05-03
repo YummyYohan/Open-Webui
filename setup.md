@@ -69,3 +69,64 @@ You'll need **three separate terminal windows/tabs**: one for Ollama, one for th
 
 4.  **Access the WebUI:**
     Open your web browser and navigate to `http://localhost:5173` (or the specific port shown in the `npm run dev` output). 
+
+## Manual Installation Guide
+
+### 3. Backend Setup and Launch
+
+First, set up a Conda environment with Python 3.11:
+```bash
+conda create -n open-webui python=3.11
+conda activate open-webui
+```
+
+Next, navigate to the backend directory and install the required Python packages:
+```bash
+cd backend
+pip install -r requirements.txt
+```
+
+Then, launch the backend server:
+```bash
+sh dev.sh
+```
+This will start the backend API server, usually on `http://localhost:8080`.
+
+### 4. Frontend Setup and Launch
+
+Navigate back to the project root directory (`Open-Webui`) and install the frontend dependencies:
+```bash
+cd ..
+npm install
+```
+
+Now, start the frontend development server:
+```bash
+npm run dev
+```
+This will typically make the web UI available at `http://localhost:5173` (check the output of the command for the exact URL).
+
+**Accessing the UI:** Open your web browser and navigate to the frontend URL (e.g., `http://localhost:5173`), **not** the backend URL (`http://localhost:8080`).
+
+**Troubleshooting:**
+
+*   **Vite Errors (`_metadata.json` not found, `Outdated Optimize Dep`, etc.):** If you encounter errors related to Vite or `node_modules/.vite` during `npm run dev` or `npm install`, or if the **frontend UI gets stuck on the loading logo**, try removing the Vite cache and reinstalling dependencies:
+    ```bash
+    # In the Open-Webui root directory
+    rm -rf node_modules/.vite
+    rm -rf node_modules
+    npm install
+    npm run dev
+    ```
+*   **`{"detail":"Not Found"}` Error:** This usually means you are trying to access the backend URL (e.g., `http://localhost:8080`) directly in your browser. Make sure you are accessing the frontend URL provided by the `npm run dev` command (e.g., `http://localhost:5173`).
+
+*   **Prompt Sent, No Response:** If the UI loads but sending a prompt results in no response (the loading indicator spins indefinitely):
+    1.  **Check Backend Logs:** Look at the terminal running `sh dev.sh`. Are there errors after the initial `POST /api/v1/chats/...` log?
+    2.  **Check Ollama Logs:** Ensure `ollama serve` is running (preferably started manually in a dedicated terminal so you can see logs). Check its output for errors or activity when you send the prompt.
+    3.  **Check Browser Network Tab:** Open browser DevTools (F12), go to Network, send the prompt, and check the status of the chat request (e.g., `POST /api/v1/chats/...`). Is it pending? Did it error out?
+
+*   **Ollama Port Conflict (`address already in use`) or Unresponsive Ollama:** If you cannot start `ollama serve` due to the port being in use, or if the backend/Ollama logs indicate Ollama isn't responding correctly, the existing Ollama process (often started by the desktop app or a system service) might need to be stopped forcefully:
+    1.  Find the process ID (PID) using the port (default 11434): `lsof -ti :11434`
+    2.  Stop the process using its PID: `kill <PID>` (e.g., `kill 12345`)
+    3.  If it restarts or `kill` doesn't work, use `kill -9 <PID>`.
+    4.  Once stopped, run `ollama serve` manually in a dedicated terminal to monitor its logs directly. 

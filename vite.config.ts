@@ -30,6 +30,25 @@ export default defineConfig({
 			]
 		})
 	],
+	server: {
+		host: true,
+		allowedHosts: [
+				'.ngrok-free.app' // Allow all ngrok-free.app subdomains
+		],
+		proxy: {
+			'/api': {
+				target: 'http://localhost:8080',
+				changeOrigin: true,
+				secure: false,
+				ws: true
+			},
+			'/ws': {
+				target: 'ws://localhost:8080',
+				changeOrigin: true,
+				ws: true
+			}
+		}
+	},
 	define: {
 		APP_VERSION: JSON.stringify(process.env.npm_package_version),
 		APP_BUILD_HASH: JSON.stringify(process.env.APP_BUILD_HASH || 'dev-build')

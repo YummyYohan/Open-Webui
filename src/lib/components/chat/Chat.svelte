@@ -36,7 +36,8 @@
 		chatTitle,
 		showArtifacts,
 		tools,
-		toolServers
+		toolServers,
+		theme
 	} from '$lib/stores';
 	import {
 		convertMessagesToHistory,
@@ -2022,7 +2023,9 @@
 				
 				<!--First Split screen-->
 					{#if $settings?.landingPageMode === 'chat' || createMessagesList(history, history.currentId).length > 0}
-						<div class="flex flex-col flex-auto z-10 w-full @container bg-neutral-800" 
+						<div class="flex flex-col flex-auto z-10 w-full @container {(localStorage.theme === 'dark' || 
+						(localStorage.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+					  ) ? 'bg-neutral-800' : ''}" 
 						id = "split1"
 						>
 							<div

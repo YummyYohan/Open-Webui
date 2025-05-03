@@ -1,6 +1,11 @@
 # Open WebUI - Local Development Setup
 
 This guide explains how to install dependencies and run the Open WebUI frontend and backend locally for development purposes.
+Along with these setup instructions, you can watch the following demo videos to get a better idea of how to work with repository:
+**Setup:** ([https://youtu.be/gvaAZ5UP30I])
+**Features:** ([https://youtu.be/9HHhHZ6smi4])
+**Ngrok:** ([https://youtu.be/nW81NQt-PBM])
+
 
 ## 1. Prerequisites
 
